@@ -61,7 +61,6 @@ def generate():
     e,n=public
     d,n=private
 
-    print(public,private)
     #public key into file
     with open('data.txt', 'w') as f:
             f.write(str(public))
@@ -69,21 +68,27 @@ def generate():
 
     SecondEntry.delete(0,'end')
     ThirdEntry.delete(0,'end')
-    M=ord(FirstEntry.get())
-    print(M)
+    
+    M=FirstEntry.get()
+    M=  [ord(character) for character in M]
+
+    
+    #send over M
+    ThirdEntry.insert(0,str(M))
+   
     #generating signature
-    S = (M**d) % n
+    S=[]
+    for M in M:
+     S.append( (M**d) % n)
 
     #send over S
     SecondEntry.insert(0,str(S))
 
-    #send over M
-    ThirdEntry.insert(0,M)
-   
 
 
 def validate():
-    M=ord(FirstEntry.get())
+    M=FirstEntry.get()
+    M=  [ord(character) for character in M]
     #get public key
     with open('data.txt', 'r') as f:
             public = f.read()
@@ -92,12 +97,21 @@ def validate():
     ts=eval(public)
     e = int(ts[0])
     n = int(ts[1])
-    print(e,n)
+    
 
-    S=int(SecondEntry.get())
-    M1 = (S**e) % n
+    S=SecondEntry.get()
+    print("s=", S)
+    S=eval(S)
+
+    M1=[]
+
+    for S in S:
+     M1.append( (S**e) % n)
+
+
     ThirdEntry.delete(0,'end')
     ThirdEntry.insert(0,M1)
+    print(M, M1)
 
     if M==M1:
         rez.set("parasas patvirtintas!") 
