@@ -3,6 +3,114 @@ from tkinter import ttk
 import math
 from binascii import hexlify, unhexlify
 import random
+# ----------FUNCTIONS----------
+
+
+
+
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a % b
+    return a
+
+
+def inverse(e, phi):
+    a, b, u = 0, phi, 1
+    while(e > 0):
+        q = b // e
+        e, a, b, u = b % e, u, e, a-q*u
+    if (b == 1):
+        return a % phi
+    else:
+        print("Must be coprime!")
+
+def generate_keypair(p, q):
+ 
+    n = p * q
+
+    # Phi is the totient of n
+    phi = (p-1) * (q-1)
+
+    # Choose an integer e such that e and phi(n) are coprime
+    e = random.randrange(1, phi)
+
+    # Use Euclid's Algorithm to verify that e and phi(n) are comprime
+    g = gcd(e, phi)
+    while g != 1:
+        e = random.randrange(1, phi)
+        g = gcd(e, phi)
+
+    # Use Extended Euclid's Algorithm to generate the private key
+
+    d = inverse(e, phi)
+
+    # Return public and private keypair
+    # Public key is (e, n) and private key is (d, n)
+
+    return ((e, n), (d, n))
+
+
+
+
+
+def generate():
+    # p,q primes
+    p = 823
+    q = 953
+    public, private = generate_keypair(p, q)
+    e,n=public
+    d,n=private
+
+    print(public,private)
+    #public key into file
+    with open('data.txt', 'w') as f:
+            f.write(str(public))
+
+
+    SecondEntry.delete(0,'end')
+    ThirdEntry.delete(0,'end')
+    M=ord(FirstEntry.get())
+    print(M)
+    #generating signature
+    S = (M**d) % n
+
+    #send over S
+    SecondEntry.insert(0,str(S))
+
+    #send over M
+    ThirdEntry.insert(0,M)
+   
+
+
+def validate():
+    M=ord(FirstEntry.get())
+    #get public key
+    with open('data.txt', 'r') as f:
+            public = f.read()
+
+#convert to tuple
+    ts=eval(public)
+    e = int(ts[0])
+    n = int(ts[1])
+    print(e,n)
+
+    S=int(SecondEntry.get())
+    M1 = (S**e) % n
+    ThirdEntry.delete(0,'end')
+    ThirdEntry.insert(0,M1)
+
+    if M==M1:
+        rez.set("parasas patvirtintas!") 
+    else:
+        rez.set("parasas nepatvirtintas!")
+
+
+
+    
+
+
+
+
 
 
 
@@ -15,41 +123,38 @@ mode1 = StringVar()
 k = StringVar()
 
 # first field:
-Label(master, text="Pirmas laukas", font=(
+Label(master, text="(Pirmas laukas) x=", font=(
     "Arial", 15)).grid(row=2, sticky=W, padx=5)
 FirstEntry = Entry(master)
 FirstEntry.grid(row=2, column=1)
 
 # button generate signature
-button1 = Button(master, text='generuoti', width=8)
+button1 = Button(master, text='generuoti', width=8, command=generate)
 button1.grid(row=3, column=1)
 
 # second:
-Label(master, text="Antras laukas", font=(
+Label(master, text="(Antras laukas) s=", font=(
     "Arial", 15)).grid(row=4, sticky=W, padx=5)
 SecondEntry = Entry(master)
 SecondEntry.grid(row=4, column=1)
 
-# button modify
-button2 = Button(master, text='modifikuoti', width=8 )
-button2.grid(row=5, column=1)
 
 # third:
-Label(master, text="Trecias laukas", font=(
+Label(master, text="(Trecias laukas) x'=", font=(
     "Arial", 15)).grid(row=6, sticky=W, padx=5)
 ThirdEntry = Entry(master)
 ThirdEntry.grid(row=6, column=1)
 
 # button to get result
-button3 = Button(master, text='patvirtinti', width=8 )
+button3 = Button(master, text='patvirtinti', width=8, command=validate)
 button3.grid(row=7, column=1)
 
+# rezultatas:
+rez=StringVar()
+Label(master, textvariable= rez,text="Rezultatas", font=(
+    "Arial", 12)).grid(row=8, sticky=W, padx=5)
 
-# field for result:
-Label(master, text="Rezultatas", font=(
-    "Arial", 15)).grid(row=10, sticky=W, padx=5)
-ResultEntry = Entry(master)
-ResultEntry.grid(row=10, column=1)
+
 
 
 # size of the page
